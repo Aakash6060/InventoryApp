@@ -1,11 +1,18 @@
+"""Lambda function to add an inventory item to DynamoDB."""
+
 import json
-import boto3
 import uuid
+import boto3
+
 
 def lambda_handler(event, context):
+    """
+    Handle POST request to add an inventory item.
+    Expects a JSON body with item_name, item_description, item_qty, item_price, location_id.
+    """
     try:
         data = json.loads(event['body'])
-    except:
+    except (KeyError, TypeError, json.JSONDecodeError):
         return {
             'statusCode': 400,
             'body': json.dumps("Invalid request body.")
@@ -13,7 +20,6 @@ def lambda_handler(event, context):
 
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table('Inventory')
-
     item_id = str(uuid.uuid4())
 
     try:
@@ -25,12 +31,10 @@ def lambda_handler(event, context):
             'item_price': float(data['item_price']),
             'location_id': int(data['location_id']),
         })
-
         return {
             'statusCode': 200,
             'body': json.dumps(f"Item {item_id} added.")
         }
-
     except Exception as e:
         return {
             'statusCode': 500,
